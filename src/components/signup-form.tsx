@@ -1,38 +1,58 @@
-import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import {
-  Field,
-  FieldDescription,
-  FieldGroup,
-  FieldLabel,
-  FieldSeparator,
-} from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
-import { cn } from "@/lib/utils"
+"use client";
 
-export function SignupForm({
-  className,
-  ...props
-}: React.ComponentProps<"div">) {
-  return (
-    <div className={cn("flex flex-col gap-6", className)} {...props}>
-      <Card>
-        <CardHeader className="text-center">
-          <CardTitle className="text-xl">Welcome to NoteMatter</CardTitle>
-          <CardDescription>
-            Signup with your Apple or Google account
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form>
-            <FieldGroup>
-              <Field>
+import Link from "next/link";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Field, FieldDescription, FieldGroup, FieldLabel, FieldSeparator } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
+import { apiCall, getCSRFToken } from "@/utils/apis";
+
+export function SignupForm({ className, ...props }: React.ComponentProps<"div">) {
+	const [loading, setLoading] = useState(false);
+
+	const handleSubmit = async (event: React.FormEvent) => {
+		event.preventDefault();
+		setLoading(true);
+
+		const form = event.target as HTMLFormElement;
+		const formData = new FormData(form);
+    const csrfToken = await getCSRFToken();
+
+		const data = {
+			email: formData.get("email"),
+			username: formData.get("username"),
+			password: formData.get("password"),
+      _csrf: csrfToken,
+		};
+
+		try {
+			const res = await apiCall("/auth/signup", {
+				method: "POST",
+				body: JSON.stringify(data),
+				headers: { "Content-Type": "application/json" },
+			});
+
+			console.log("Signup successful:", res);
+		} catch (error) {
+			console.error("Error during signup:", error);
+		} finally {
+			setLoading(false);
+		}
+	};
+
+	return (
+		<div className={cn("flex flex-col gap-6", className)} {...props}>
+			<Card>
+				<CardHeader className="text-center">
+					<CardTitle className="text-xl">Welcome to NoteMatter</CardTitle>
+					<CardDescription>Signup with your Apple or Google account</CardDescription>
+				</CardHeader>
+				<CardContent>
+					<form onSubmit={handleSubmit}>
+						<FieldGroup>
+							{/* <Field>
                 <Button variant="outline" type="button">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                     <path
@@ -54,43 +74,34 @@ export function SignupForm({
               </Field>
               <FieldSeparator className="*:data-[slot=field-separator-content]:bg-card">
                 Or continue with
-              </FieldSeparator>
-              <Field>
-                <FieldLabel htmlFor="email">Email</FieldLabel>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="m@example.com"
-                  required
-                />
-              </Field>
-              <Field>
-                <FieldLabel htmlFor="username">Username</FieldLabel>
-                <Input
-                  id="username"
-                  type="text"
-                  placeholder="johndoe"
-                  required
-                />
-              </Field>
-              <Field>
-                <FieldLabel htmlFor="password">Password</FieldLabel>
-                <Input placeholder="********" id="password" type="password" required />
-              </Field>
-              <Field>
-                <Button type="submit">Signup</Button>
-                <FieldDescription className="text-center">
-                  Already have an account? <a href="#">Log in</a>
-                </FieldDescription>
-              </Field>
-            </FieldGroup>
-          </form>
-        </CardContent>
-      </Card>
-      <FieldDescription className="px-6 text-center text-xs">
-        By signing up, you agree to our <a href="#">Terms of Service</a>{" "}
-        and <a href="#">Privacy Policy</a>.
-      </FieldDescription>
-    </div>
-  )
+              </FieldSeparator> */}
+							<Field>
+								<FieldLabel htmlFor="email">Email</FieldLabel>
+								<Input id="email" name="email" type="email" placeholder="m@example.com" required />
+							</Field>
+							<Field>
+								<FieldLabel htmlFor="username">Username</FieldLabel>
+								<Input id="username" name="username" type="text" placeholder="johndoe" required />
+							</Field>
+							<Field>
+								<FieldLabel htmlFor="password">Password</FieldLabel>
+								<Input placeholder="********" id="password" name="password" type="password" required />
+							</Field>
+							<Field>
+								<Button type="submit" disabled={loading}>
+									Signup
+								</Button>
+								<FieldDescription className="text-center">
+									Already have an account? <Link href="/login">Log in</Link>
+								</FieldDescription>
+							</Field>
+						</FieldGroup>
+					</form>
+				</CardContent>
+			</Card>
+			<FieldDescription className="px-6 text-center text-xs">
+				By signing up, you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.
+			</FieldDescription>
+		</div>
+	);
 }
