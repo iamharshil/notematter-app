@@ -1,15 +1,12 @@
 
 export const apiCall = async (endpoint: string, options: RequestInit = {}) => {
-  console.log(`${process.env.NEXT_PUBLIC_API_URL}/${endpoint}`);
 	const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api${endpoint}`, {
-    ...options,
-    credentials: 'include', // Include cookies for cross-origin requests
-  });
-	console.log("⚡️ ~ api.ts:4 ~ apiCall ~ response:", response)
-	if (!response.ok) {
-		throw new Error(`API call failed: ${response.statusText}`);
-	}
-	return response.json();
+		...options,
+		credentials: "include", // Include cookies for cross-origin requests
+	});
+
+	const result = await response.json();
+	return result;
 };
 
 export const getCSRFToken = async () => {

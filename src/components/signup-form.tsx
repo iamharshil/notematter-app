@@ -1,15 +1,18 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Field, FieldDescription, FieldGroup, FieldLabel, FieldSeparator } from "@/components/ui/field";
+import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { apiCall, getCSRFToken } from "@/utils/apis";
 
 export function SignupForm({ className, ...props }: React.ComponentProps<"div">) {
+	const router = useRouter();
 	const [loading, setLoading] = useState(false);
 
 	const handleSubmit = async (event: React.FormEvent) => {
@@ -18,13 +21,13 @@ export function SignupForm({ className, ...props }: React.ComponentProps<"div">)
 
 		const form = event.target as HTMLFormElement;
 		const formData = new FormData(form);
-    const csrfToken = await getCSRFToken();
+		const csrfToken = await getCSRFToken();
 
 		const data = {
 			email: formData.get("email"),
 			username: formData.get("username"),
 			password: formData.get("password"),
-      _csrf: csrfToken,
+			_csrf: csrfToken,
 		};
 
 		try {
@@ -34,9 +37,15 @@ export function SignupForm({ className, ...props }: React.ComponentProps<"div">)
 				headers: { "Content-Type": "application/json" },
 			});
 
-			console.log("Signup successful:", res);
+			if (res.success) {
+				toast.success("Registered successfully.");
+				router.push("/login");
+			} else {
+				toast.error(res?.message || "Something went wrong, Please try again!");
+			}
 		} catch (error) {
 			console.error("Error during signup:", error);
+			toast.error("Something went wrong, please try again!");
 		} finally {
 			setLoading(false);
 		}
@@ -89,7 +98,7 @@ export function SignupForm({ className, ...props }: React.ComponentProps<"div">)
 							</Field>
 							<Field>
 								<Button type="submit" disabled={loading}>
-									Signup
+									{loading ? "Signing up..." : "Signup"}
 								</Button>
 								<FieldDescription className="text-center">
 									Already have an account? <Link href="/login">Log in</Link>
