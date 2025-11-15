@@ -14,8 +14,8 @@ import {
 	Trash2,
 	UsersIcon,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import * as React from "react";
-
 import { NavUser } from "@/components/nav-user";
 import { Label } from "@/components/ui/label";
 import {
@@ -36,6 +36,7 @@ import {
 	useSidebar,
 } from "@/components/ui/sidebar";
 import { Switch } from "@/components/ui/switch";
+import { useAuthStore } from "@/utils/store";
 import { Button } from "./ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
 
@@ -153,11 +154,17 @@ const data = {
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+	const user = useAuthStore((s) => s.user);
+	const router = useRouter();
 	// Note: I'm using state to show active item.
 	// IRL you should use the url/router.
 	const [activeItem, setActiveItem] = React.useState(data.navMain[0]);
 	const [mails, setMails] = React.useState(data.mails);
 	const { setOpen } = useSidebar();
+
+	if (!user?.email || !user.username) {
+		return router.push("/login");
+	}
 
 	return (
 		<Sidebar
@@ -174,14 +181,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 						<Label className="flex items-center gap-2 text-sm">
 							<Button variant="link">
 								<ArrowDownUpIcon className="shadow-none" size={16} />
-								<span>Sort</span>
+								{/* <span>Sort</span> */}
 							</Button>
 						</Label>
 					</div>
+
 					<SidebarInput placeholder="Type to search..." />
-				</SidebarHeader>
-				<SidebarContent>
-					<SidebarGroup>
+					<SidebarGroup className="mx-0 px-0">
 						<SidebarMenu className="gap-1">
 							<SidebarMenuItem className="my-1">
 								<SidebarMenuButton className="bg-white text-black">
@@ -239,7 +245,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 							</Collapsible>
 						</SidebarMenu>
 					</SidebarGroup>
-					<SidebarGroup className="px-0">
+				</SidebarHeader>
+				<SidebarContent>
+					<SidebarGroup className="px-0 mt-0 pt-0">
 						<SidebarGroupContent>
 							{mails.map((mail) => (
 								<a
@@ -260,7 +268,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 					</SidebarGroup>
 				</SidebarContent>
 				<SidebarFooter className="border-t">
-					<NavUser user={data.user} />
+					<NavUser user={user} />
 				</SidebarFooter>
 			</Sidebar>
 		</Sidebar>
